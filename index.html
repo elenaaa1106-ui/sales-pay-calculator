@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>業務薪資試算器</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--tx:#1d2330;--mu:#677084;--ac:#2f5bd8;--ac2:#e8eefc;--bd:#e1e5ec;--g1:#2f5bd8;--g2:#16a34a;--g3:#f59e0b;--g4:#a855f7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--card:#1b2030;--tx:#e8ebf2;--mu:#98a1b3;--ac:#7aa2ff;--ac2:#242c45;--bd:#2c3347}}
+:root[data-theme="dark"]{--bg:#12151c;--card:#1b2030;--tx:#e8ebf2;--mu:#98a1b3;--ac:#7aa2ff;--ac2:#242c45;--bd:#2c3347}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+.w{max-width:960px;margin:0 auto;padding:18px 14px 40px}
+h1{font-size:20px;margin:4px 0 2px}.sub{color:var(--mu);font-size:13px;margin-bottom:14px}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:8px 16px;border-radius:999px;font:inherit;cursor:pointer}
+.tabs button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 10px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:block;font-size:13px;color:var(--mu)}label small{display:block;font-size:11px;opacity:.85}
+input{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--tx);font:inherit}
+input:focus{outline:2px solid var(--ac);border-color:transparent}
+.big{font-size:34px;font-weight:700;color:var(--ac);line-height:1.1}.mu{color:var(--mu);font-size:13px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+.kpi div{background:var(--ac2);border-radius:10px;padding:10px}.kpi b{display:block;font-size:17px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}th{color:var(--mu);font-weight:600;font-size:12px}
+.sc{overflow-x:auto}.sc input{margin:0;padding:6px;width:92px;text-align:right}.sc td:first-child input{width:70px;text-align:left}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:12px 0 6px;background:var(--bd)}
+.lg{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mu)}.lg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.tot td{font-weight:700;border-top:2px solid var(--bd)}
+.btn{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 14px;border-radius:9px;font:inherit;cursor:pointer}
+.x{padding:4px 9px;color:var(--mu)}.note{font-size:12px;color:var(--mu);margin-top:8px}.ok{color:#16a34a}
+[hidden]{display:none!important}
+</style></head><body><div class="w">
+<h1>🧮 業務薪資試算器</h1>
+<div class="sub">輸入全年成交家數等數字，立即換算年薪與獎金組成。試算僅供參考，實際以公司公告為準。</div>
+<div class="tabs"><button class="on" data-t="a">個人試算</button><button data-t="b">主管：團隊成本</button><button data-t="c">參數設定</button></div>
+
+<div id="a">
+<div class="card"><h2>輸入你的數字</h2><div class="g">
+<label>全年成交家數<small>含一次性客戶，大客戶年度中算 1 家</small><input id="n" type="number" min="0" value="110"></label>
+<label>其中年度營收低於 5,000 元的小客戶數<small>年底改算 0.5 家</small><input id="s" type="number" min="0" value="14"></label>
+<label>其中大客戶數（自己開發）<input id="nb" type="number" min="0" value="0"></label>
+<label>大客戶當年度貢獻額合計（元）<small>年底折算成多家</small><input id="gb" type="number" min="0" value="0"></label>
+<label>舊客戶／承接客戶年營收（元）<small>只計入營業額獎金</small><input id="old" type="number" min="0" value="0"></label>
+</div></div>
+<div class="card"><div class="mu">預估全年收入</div><div class="big" id="tot">-</div>
+<div class="mu" id="sub1"></div>
+<div class="bar" id="bar"></div>
+<div class="lg"><span><i style="background:var(--g1)"></i>固定薪</span><span><i style="background:var(--g2)"></i>每家獎金（月發）</span><span><i style="background:var(--g3)"></i>營業額獎金</span><span><i style="background:var(--g4)"></i>年終</span></div>
+<div class="kpi"><div><span class="mu">月均收入</span><b id="mo"></b></div><div><span class="mu">獎金占比</span><b id="sh"></b></div><div><span class="mu">年終認列家數</span><b id="nn"></b></div><div><span class="mu">每多成交 1 家約增加</span><b id="mg"></b></div></div></div>
+<div class="card"><h2>收入明細</h2><table id="dt"></table></div>
+<div class="card"><h2>目標對照（沿用你的小客戶比例）</h2><table id="tg"></table></div>
+</div>
+
+<div id="b" hidden><div class="card"><h2>團隊年度成本試算</h2><div class="sc"><table id="tm"></table></div>
+<div style="margin-top:10px"><button class="btn" id="add">＋ 新增業務</button></div>
+<div class="note">營收＝新客（每家 25,000＋大客戶貢獻額）＋舊客戶／承接客戶年營收。預設為範例數字，可直接修改。主管獎金未含在內。</div></div></div>
+
+<div id="c" hidden><div class="card"><h2>參數設定（主管用）</h2><div class="g" id="pg"></div>
+<div style="margin-top:12px"><button class="btn" id="rs">還原預設值</button></div>
+<div class="note">每家單價分三段：第 1 段到基礎目標、第 2 段到優秀目標、第 3 段為卓越目標以上。「其中月發」為每月隨成交發放的部分，其餘在年底依年終認列家數結算。</div></div></div>
+</div>
+<script>
+/*CALC*/
+const DEF={base:420000,dev:14400,e1:110,e2:140,e3:170,c1:1000,c2:2000,c3:3000,d1:1000,d2:1500,d3:2000,b35:35000,rr:.01,conv:25000,sw:.5,er:.13};
+let P={...DEF};
+const tier=(A,x)=>A[0]*Math.min(x,P.e1)+A[1]*Math.max(Math.min(x,P.e2)-P.e1,0)+A[2]*Math.max(x-P.e2,0);
+function calc(i){
+ const N=Math.max(i.n-i.nb+i.gb/P.conv-i.s*(1-P.sw),0),C=[P.c1,P.c2,P.c3],D=[P.d1,P.d2,P.d3];
+ const month=tier(D,i.n),gate=i.n>=P.e1?P.b35:0,yh=tier(C,N)-tier(D,N);
+ const rev=(i.n-i.nb)*P.conv+i.gb+i.old,revb=rev*P.rr;
+ const total=P.base+P.dev+month+revb+gate+yh;
+ return{N,month,gate,yh,rev,revb,total,cost:total*(1+P.er),ye:gate+yh};
+}
+/*END*/
+const $=id=>document.getElementById(id),f=x=>Math.round(x).toLocaleString('zh-TW'),w=x=>(x/1e4).toFixed(1)+' 萬';
+const LB={base:['底薪（含津貼，年）'],dev:['開發獎金（年）'],e1:['基礎目標（家）'],e2:['優秀目標（家）'],e3:['卓越目標（家，僅顯示用）'],c1:['第1段每家單價'],d1:['第1段其中月發'],c2:['第2段每家單價'],d2:['第2段其中月發'],c3:['第3段每家單價'],d3:['第3段其中月發'],b35:['達基礎目標年終獎金'],rr:['營業額獎金率（0.01＝1%）'],conv:['平均新客年貢獻額（折算基準）'],sw:['小客戶年底認列家數'],er:['雇主負擔率']};
+$('pg').innerHTML=Object.keys(LB).map(k=>`<label>${LB[k][0]}<input data-p="${k}" type="number" step="any" value="${P[k]}"></label>`).join('');
+let TEAM=[['業務A',121,1,1000000,15,2000000],['業務B',160,0,0,20,3000000],['業務C',131,1,250000,16,1500000],['業務D',140,0,0,17,0],['業務E',110,0,0,14,0],['業務F',115,0,0,14,0]];
+const KS=['n','nb','gb','s','old'];
+function buildTeam(){$('tm').innerHTML='<tr><th>業務</th><th>成交家數</th><th>大客戶數</th><th>大客戶貢獻額</th><th>小客戶數</th><th>舊／承接營收</th><th>年薪</th><th>雇主成本</th><th></th></tr>'+TEAM.map((r,j)=>`<tr data-r="${j}"><td><input data-n="${j}" value="${r[0]}"></td>${KS.map((k,m)=>`<td><input data-k="${k}" type="number" value="${r[m+1]}"></td>`).join('')}<td class="o1"></td><td class="o2"></td><td><button class="btn x" data-del="${j}" title="刪除">✕</button></td></tr>`).join('')+'<tr class="tot"><td id="tc">合計</td><td id="t1"></td><td></td><td></td><td></td><td></td><td id="t2"></td><td id="t3"></td><td></td></tr>'}
+function rows(){return[...document.querySelectorAll('#tm tr[data-r]')].map(tr=>[tr.querySelector('[data-n]').value,...KS.map(k=>+tr.querySelector(`[data-k=${k}]`).value||0)])}
+buildTeam();
+document.addEventListener('click',e=>{const d=e.target.closest('[data-del]');if(d){TEAM=rows();TEAM.splice(+d.dataset.del,1);buildTeam();render()}});
+$('add').onclick=()=>{TEAM=rows();TEAM.push(['業務'+(TEAM.length+1),0,0,0,0,0]);buildTeam();render()};
+const num=id=>Math.max(+$(id).value||0,0);
+function render(){
+ document.querySelectorAll('[data-p]').forEach(e=>{const v=parseFloat(e.value);if(!isNaN(v))P[e.dataset.p]=v});
+ const i={n:num('n'),s:num('s'),nb:num('nb'),gb:num('gb'),old:num('old')},r=calc(i),fixed=P.base+P.dev;
+ $('tot').textContent='NT$ '+f(r.total);
+ $('sub1').textContent='雇主總成本約 NT$ '+f(r.cost)+'（含勞健保、勞退 '+(P.er*100).toFixed(0)+'%）';
+ const parts=[fixed,r.month,r.revb,r.ye],cl=['--g1','--g2','--g3','--g4'];
+ $('bar').innerHTML=parts.map((v,k)=>`<div style="width:${v/r.total*100}%;background:var(${cl[k]})"></div>`).join('');
+ $('mo').textContent='NT$ '+f(r.total/12);$('sh').textContent=((r.total-P.base)/r.total*100).toFixed(1)+'%';$('nn').textContent=r.N.toFixed(1)+' 家';
+ const m1=calc({...i,n:i.n+1}).total-r.total;$('mg').textContent='NT$ '+f(m1);
+ $('dt').innerHTML=[['底薪',P.base],['開發獎金',P.dev],['每家獎金：月發（依成交家數）',r.month],['營業額獎金（營收 '+f(r.rev)+' 元）',r.revb],['達基礎目標年終（'+(i.n>=P.e1?'已達成':'未達 '+P.e1+' 家')+'）',r.gate],['每家獎金：年終結算（依認列家數）',r.yh]].map(x=>`<tr><td>${x[0]}</td><td>NT$ ${f(x[1])}</td></tr>`).join('')+`<tr class="tot"><td>全年合計</td><td>NT$ ${f(r.total)}</td></tr>`;
+ const ra=i.n>0?i.s/i.n:.123;
+ $('tg').innerHTML='<tr><th>目標</th><th>成交家數</th><th>年薪</th><th>與你的差距</th></tr>'+[['基礎',P.e1],['優秀',P.e2],['卓越',P.e3]].map(([nm,t])=>{const y=calc({n:t,s:Math.round(t*ra),nb:0,gb:0,old:0}).total;return`<tr><td>${nm}目標</td><td>${t} 家</td><td>${w(y)}</td><td>${i.n>=t?'<span class="ok">已達成</span>':'還差 '+(t-i.n)+' 家'}</td></tr>`}).join('');
+ let T=[0,0,0];
+ document.querySelectorAll('#tm tr[data-r]').forEach(tr=>{const o={};tr.querySelectorAll('[data-k]').forEach(e=>o[e.dataset.k]=Math.max(+e.value||0,0));const x=calc(o);tr.querySelector('.o1').textContent=f(x.total);tr.querySelector('.o2').textContent=f(x.cost);T[0]+=o.n;T[1]+=x.total;T[2]+=x.cost});
+ $('tc').textContent='合計（'+document.querySelectorAll('#tm tr[data-r]').length+' 位）';$('t1').textContent=T[0];$('t2').textContent=f(T[1]);$('t3').textContent=f(T[2]);
+}
+document.addEventListener('input',render);
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));['a','b','c'].forEach(k=>$(k).hidden=k!==b.dataset.t)});
+$('rs').onclick=()=>{P={...DEF};document.querySelectorAll('[data-p]').forEach(e=>e.value=DEF[e.dataset.p]);render()};
+render();
+</script></body></html>
